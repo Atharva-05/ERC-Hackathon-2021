@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <node name="obstacle_publisher" pkg="hackathon_21"
+    type="obstacle-publisher.py" output="screen"/>
+    <node name="pid_controller" pkg="hackathon_21"
+    type="pid-controller.py" output="screen" launch-prefix="xterm -e"/>
+    <node name="path_planner" pkg="hackathon_21"
+    type="path-planner.py" output="screen" launch-prefix="xterm -e"/>
+</launch>
