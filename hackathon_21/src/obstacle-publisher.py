@@ -33,6 +33,7 @@ if __name__ == '__main__':
     while not rospy.is_shutdown():
         # Obstacles need to be published only once since obstacles are static and known
         connections = obstaclePublisher.get_num_connections()
+        # print("OBSTACLE PUBLISHER: Connections: %d"%connections)
         if connections > 0:
             # Waiting to make sure all nodes have started before publishing
             time.sleep(1.0)

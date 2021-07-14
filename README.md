@@ -46,6 +46,8 @@ In a tree structure, every node has only one parent<br>
     </code>
     <br>
     This ensures that if the bot is positioned on that point, it would not be in contact with an obstacle.
+
+
     - Connect this point to the nearest available 'Node' under the condition that the line joining the nodes is clear of any obstacle.
     - Continue this process until a node from which a direct path to the goal point is feasible is found
     - Once the goal node is found, trace back the path by tracking the parent of the goal node, and the parent of that node, and so on till the initial node (0, 0) is reached

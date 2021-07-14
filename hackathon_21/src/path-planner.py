@@ -3,7 +3,6 @@
 # ROS Imports
 import rospy
 from geometry_msgs.msg import Point
-from PIL import Image
 
 # Custom message Import
 # List.msg definition
@@ -15,6 +14,10 @@ import time
 import math
 import random
 from matplotlib import pyplot as plt
+import datetime
+
+# Check line 363 for connection logic
+# Publishes only when the first subscriber has connected
 
 # Class definition of a Node for implemnting path planning algorithms
 class Node():
@@ -324,8 +327,8 @@ if __name__ == '__main__':
         planner.drawPoint(node.point)
         
     # Connects all nodes with their parent
-    # for node in planner.nodes:
-    #     planner.drawLine(node.point, planner.nodes[node.parentNodeID].point, width=0.5, color='blue')
+    for node in planner.nodes:
+        planner.drawLine(node.point, planner.nodes[node.parentNodeID].point, width=0.5, color='blue')
     
     # planner.plotPath() returns a list of IDs of parents of all nodes involved in the path
     parentIDList = planner.plotPath()
@@ -349,7 +352,7 @@ if __name__ == '__main__':
     print("Path Planner: Starting publishing when subscriber connects...")
     
     # Shows the planned path and saves to a .png file
-    plt.savefig('path.png')
+    plt.savefig('path-%s.png'%(str(datetime.datetime.now())))
     plt.show()
     
     # Waiting to ensure controller node has started
@@ -359,6 +362,7 @@ if __name__ == '__main__':
         # Publishes path only once when the controller node establishes a connection
         # by subscribing to the 'path' topic
         connections = pathPlannerPublisher.get_num_connections()
+        # print("PATH PLANNER: Connections: %d"%connections)
         if connections > 0 and hasObstacles:
             time.sleep(1)
             print("Publishing calculated path...")
