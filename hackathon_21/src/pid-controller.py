@@ -160,9 +160,9 @@ if __name__ == '__main__':
     pathArray = []
     hasPath = False
 
-    print("PID node starting...")
+    print("PID CONTROLLER: PID node starting...")
     time.sleep(3)
-    print("PID Controller started. Point to point motion will be regulated by the controller")
+    print("PID CONTROLLER: PID Controller started. Point to point motion will be regulated by the controller")
     
     # Current point is now global
     currentPoint = Point(0, 0, 0)
@@ -195,12 +195,12 @@ if __name__ == '__main__':
             velToPublish = Twist()
             isDone = controller.getPIDValue()
             if(isDone):
-                print("Goal point (%f %f) reached successfully"%(controller.goalPoint.x, controller.goalPoint.y))
+                print("PID CONTROLLER: Goal point (%f %f) reached successfully"%(controller.goalPoint.x, controller.goalPoint.y))
                 # Waiting time between distinct paths
                 time.sleep(1.0)
                 break
             rate.sleep()
 
-    print("Reached goal point: ")
+    print("PID CONTROLLER: Reached goal point: ")
     print(currentPoint)
-    print("Terminating node")
+    print("PID CONTROLLER: Terminating node")

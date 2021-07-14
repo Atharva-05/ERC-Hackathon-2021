@@ -3,6 +3,7 @@
 # ROS Imports
 import rospy
 from geometry_msgs.msg import Point
+from PIL import Image
 
 # Custom message Import
 # List.msg definition
@@ -68,8 +69,8 @@ class Planner():
         self.obstacleRadius = obstacleRadius
         self.botRaduis = botRadius
         # clearanceRadius value is used to check whether a point lies within an obstacle or not
+        # i.e. will it be in contact with an obstacle when it is at that point
         self.clearanceRadius = obstacleRadius + botRadius
-        
         
         # Root node is starting point (0, 0) with index 0
         self.rootNode = Node(Point(0.0, 0.0, 0.0), self, True)
@@ -77,7 +78,7 @@ class Planner():
         self.goalPoint = goalPoint
         self.isGoalReached = False
         self.targetNode = Node(self.goalPoint, self)
-        print("Clearance radius set to: %f"%self.clearanceRadius)
+        print("Path Planner: Clearance radius set to: %f"%self.clearanceRadius)
 
     def getDistance(self, pointA, pointB):
         # Returns Euclidian distance between parameters pointA and pointB
@@ -116,15 +117,6 @@ class Planner():
             # tempCircle = plt.Circle((self.obstacles[i].x, self.obstacles[i].y), 0.25)
             plt.gca().add_patch(plt.Circle((self.obstacles[i].x, self.obstacles[i].y), 0.25))
 
-    # def drawPoints(self):
-    #     # Plots points
-    #     x_pts = []
-    #     y_pts = []
-    #     for i in range(len(self.points) - 1):
-    #         x_pts.append(self.points[i].x)
-    #         y_pts.append(self.points[i].y)
-    #     return x_pts, y_pts
-
     def drawLine(self, pointA, pointB, width=0.5, color='green'):
         # Plots a line between two points
         plt.plot([pointA.x, pointB.x], [pointA.y, pointB.y], linewidth=width, color=color)
@@ -149,7 +141,6 @@ class Planner():
             y = u * pointA.y + (1-u) * pointB.y
             if not self.isFree(Point(x, y, 0.0)):
                 return False
-
         return True
     
     def newNode(self, point, planner):
@@ -157,18 +148,6 @@ class Planner():
         node = Node(point, planner)
         self.nodes.append(node)
         return node
-
-    def samplePoint(self):
-        # Generates and returns a random point
-        flag = True
-        while flag:
-            point = self.generateRandomPoint()
-            if point is not None:
-            # if(self.isFree(point)):
-                self.points.append(point)
-                # flag = False
-                return point
-
 
     def findNearestNode(self, newNode):
         # Finds and returns nearest node's ID
@@ -187,14 +166,6 @@ class Planner():
         # Connects node to parentNode i.e assigns node.parent = parentNode
         node.setParentNodeID(parentNode.id)
 
-    def drawPoints(self):
-        x_pts = []
-        y_pts = []
-        for i in range(len(self.points) - 1):
-            x_pts.append(self.nodes[i].point.x)
-            y_pts.append(self.points[i].point.y)
-        return x_pts, y_pts
-
     def drawPath(self):
         # Currently draws all possible paths
         # Update: now draws final path
@@ -212,7 +183,7 @@ class Planner():
                 return False
         return True
 
-    def initializeNodes(self, limit=2000):
+    def initializeNodes(self, limit=3000):
         counter = 0
         while counter < limit and not self.isGoalReached:
             counter += 1
@@ -222,6 +193,15 @@ class Planner():
             if self.isPathValid(point, self.nodes[nearestID].point) and self.nodeVicinity(newNode):
                 newNode = self.newNode(point, self)
                 self.connectNodes(newNode, self.nodes[nearestID])
+
+                if self.isPathValid(point, self.goalPoint):
+                    self.targetNode = self.newNode(self.goalPoint, self)
+                    # goalNode = self.newNode(self.goalPoint, self)
+                    self.connectNodes(self.targetNode, newNode)
+                    self.isGoalReached = True
+                    break
+                    
+
                 if self.getDistance(newNode, self.goalPoint) < 0.15:
                     print("Target node is (%f %f)"%(newNode.point.x, newNode.point.y))
                     self.targetNode = newNode
@@ -255,7 +235,7 @@ def obstacleSubscriberCallback(obstacleList):
         for obstacle in obstacleList.list:
             obstacles.append(obstacle)
         hasObstacles = True
-        print("Obstacles received")
+        print("PATH PLANNER: Obstacles received")
         obstacleSubscriber.unregister()
         
 
@@ -284,7 +264,7 @@ if __name__ == '__main__':
     width = 5.5
     height = 5.5
     botRadius = 0.4
-    obstacleRadius = 0.25
+    obstacleRadius = 0.25 # Improvement: take as parameter from obstacle publisher
     
     # Default goal point
     goal_x = 5.0
@@ -297,8 +277,12 @@ if __name__ == '__main__':
     planner.drawObstacles()
     
     # Code to get a valid goal point input
+    # Temporary sleep line put to avoid problems in launch file
+    # When obstacle publisher node is killed, it prints to the terminal,
+    # at that point the path planner node should not be taking input 
+    time.sleep(3)
     validInput = False
-    print("\nRRT Path Planner Node")
+    print("\nPATH PLANNER: RRT Path Planner Node")
     while not validInput:
         # print("Enter Goal x coordinate")
         goal_x = float(input("Enter Goal x coordinate: "))
@@ -316,7 +300,12 @@ if __name__ == '__main__':
     # Sets final goal point
     planner.goalPoint = Point(goal_x, goal_y, 0.0)
 
-    print("\nComputing path...\n")
+    print("\nPATH PLANNER: Computing path...\n")
+
+    # Actual path planning starts which will be put in loop
+
+    # Debugging: If the limit of number of iterations (3000 as of now) is crossed before
+    # a point within
 
     # Initializes nodes and plans a path using a modified version of RRT algorithm
     planner.initializeNodes()
@@ -327,13 +316,16 @@ if __name__ == '__main__':
     plt.axes().set_facecolor("#121212")
     plt.title("RRT Path Planner")
 
+    # Testing
+    print("PATH PLANNER: Length of planner.nodes: %d"%len(planner.nodes))
+
     # Plots all sampled points
     for node in planner.nodes:
         planner.drawPoint(node.point)
         
     # Connects all nodes with their parent
-    for node in planner.nodes:
-        planner.drawLine(node.point, planner.nodes[node.parentNodeID].point, width=0.5, color='blue')
+    # for node in planner.nodes:
+    #     planner.drawLine(node.point, planner.nodes[node.parentNodeID].point, width=0.5, color='blue')
     
     # planner.plotPath() returns a list of IDs of parents of all nodes involved in the path
     parentIDList = planner.plotPath()
@@ -350,15 +342,17 @@ if __name__ == '__main__':
     # The list is populated in the reverse direction from the goal point and hence should be reversed
     pathList.reverse()
     
-    # Shows the path planned
+    print("PATH PLANNER: Goalpoint coordinates are: (%f, %f)"%(planner.targetNode.point.x, planner.targetNode.point.y))
+    print("PATH PLANNER: Length of path is: %d"%len(pathList))
+    print("PATH PLANNER: Number of nodes is: %d"%len(planner.nodes))
+
+    print("Path Planner: Starting publishing when subscriber connects...")
+    
+    # Shows the planned path and saves to a .png file
+    plt.savefig('path.png')
     plt.show()
-
-    # 
-    print("Goalpoint coordinates are: (%f, %f)"%(planner.targetNode.point.x, planner.targetNode.point.y))
-    print("Length of path is: %d"%len(pathList))
-    print("Number of nodes is: %d"%len(planner.nodes))
-
-    print("Starting publishing when subscriber connects...")
+    
+    # Waiting to ensure controller node has started
     time.sleep(3)
 
     while not rospy.is_shutdown():
@@ -370,6 +364,8 @@ if __name__ == '__main__':
             print("Publishing calculated path...")
             pathPlannerPublisher.publish(pathList)
             break
+    # Shows the path planned
+    
     print("Path published successfully. Terminating node")
 
         

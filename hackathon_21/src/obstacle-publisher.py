@@ -28,7 +28,7 @@ if __name__ == '__main__':
             if not (i == 0 and j == 0):
                 obstacles.append(Point(float(i)/2, float(j)/2, 0.0))
     
-    print("Publishing obstacles when subscriber connects")
+    print("OBSTACLE PUBLISHER: Publishing obstacles when subscriber connects")
 
     while not rospy.is_shutdown():
         # Obstacles need to be published only once since obstacles are static and known
@@ -37,8 +37,8 @@ if __name__ == '__main__':
             # Waiting to make sure all nodes have started before publishing
             time.sleep(1.0)
             obstaclePublisher.publish(obstacleList)
-            print("Published")
+            print("OBSTACLE PUBLISHER: Obstacles published")
             break
 
     time.sleep(1)
-    print("Obstacles published. Terminating obstacle publisher node")
+    print("OBSTACLE PUBLISHER: Terminating obstacle publisher node")
