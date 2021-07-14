@@ -13,6 +13,8 @@ ROS and gazebo have been used for the simulation. The code is written in Python 
 The robot used for the task is [Omnibase](https://github.com/ERC-BPGC/omnibase), a simulator of a 4 wheel drive robot based on [Trotbot](https://github.com/ERC-BPGC/Trotbot) developed by the [Electronics and Robotics Club of BITS Goa](https://github.com/ERC-BPGC).<br><br>
 The task briefly covers motion planning and a control system to regulate the motion of a robot using ROS, Gazebo and Python.
 
+### A gif showing a part of the robot's motion:
+<img src=./images/hackathon.gif>
 ---
 ## Contents
 The repository contains the ROS package for the hackathon named 'hackathon_21'.
