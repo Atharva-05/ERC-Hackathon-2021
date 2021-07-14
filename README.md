@@ -15,7 +15,9 @@ The task briefly covers motion planning and a control system to regulate the mot
 
 ### A gif showing a part of the robot's motion:
 <img src=./images/hackathon.gif>
----
+
+___
+
 ## Contents
 The repository contains the ROS package for the hackathon named 'hackathon_21'.
 There are three scripts for three nodes namely:
